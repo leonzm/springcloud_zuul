@@ -129,3 +129,21 @@ hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds 配置�
 的错误信息
 * ribbon.ReadTimeout：该参数用来设置路由转发请求的超时时间，与 ribbon.ConnectTimeout 类似，只是它的超时是对请求连接建立之后的处理时间
 * zuul.retryable=false 或 zuul.routes.\<route\>.retryable=false 关闭重试机制
+
+# 性能调优
+* zuul 内部路由可以理解为使用一个线程池去发送路由请求，所以我们也需要扩大这个线程池的容量，配置
+```
+zuul.host.max-per-route-connections=1000 #默认为20
+zuul.host.max-total-connections=1000 #默认为200
+```
+* 如果是使用 semaphore 来控制并发，可以设置最大 semaphore 来提供性能
+```
+zuul.semaphore.max-semaphores=1000 #默认为100
+```
+* 同时需要设置 Spring Boot 内嵌 Tomcat 的并发
+```
+server.tomcat.accept-count=1000
+server.tomcat.max-threads=1000
+server.tomcat.max-connections=2000
+```
+> 参考：[Zuul性能测试](https://lexburner.github.io/2017/04/08/Zuul%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/)
